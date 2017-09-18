@@ -238,7 +238,6 @@ public class GraphManager {
     }
 
     public void greedyIvan(double percentage) {
-        
         int colorLimit = (int) (this.graph.getColorList().size() * percentage);
         //this.getGraph().sort();
         Collections.sort(this.graph.getColorList());

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="build">
+	<path id="build.classpath">
+		<pathelement location="classes"/>
+	</path>
+	<target name="init">
+		<mkdir dir="classes"/>
+	</target>
+	<target name="clean">
+		<delete dir="classes"/>
+	</target>
+	<target depends="init" name="build">
+		<javac srcdir="." destdir="classes" source="1.5" target="1.5" fork="yes">
+			<classpath refid="build.classpath"/>
+			<include name="klsf/KLSF.java"/>
+			<include name="entity/Node.java"/>
+			<include name="entity/Arch.java"/>
+			<include name="entity/Color.java"/>
+			<include name="entity/Label.java"/>
+			<include name="entity/Graph.java"/>
+			<include name="control/GraphManager.java"/>
+		</javac>
+	</target>
+</project>

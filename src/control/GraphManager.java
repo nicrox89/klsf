@@ -237,36 +237,55 @@ public class GraphManager {
         }
     }
 
+    
+    /**
+     * 
+     * @param percentage 
+     */
     public void greedyIvan(double percentage) {
-        //Ciao Ilaria sei grande!!!
+        
+        //Set color limit based on the percentage input parameter
         int colorLimit = (int) (this.graph.getColorList().size() * percentage);
+        
+        //Sort color list by the color most present
         //this.getGraph().sort();
         Collections.sort(this.graph.getColorList());
         Collections.reverse(this.graph.getColorList());
         //this.getGraph().randomize();
+        
         this.graph.resetNodesCheck();
         this.graph.resetColorCheck();
         this.graph.resetSolutionCheck();
 
+        //Set colors founds
         int colors = 0;
         //String label = "";
+        
         ArrayList<Integer> colorSolution = new ArrayList<Integer>();
 
+        
         ArrayList<Graph> subGraphs = null;
+        
+        //Set initial number on components based on number of nodes
+        //because all nodes in solution are disconnected
         int components = this.graph.getNodeList().size();
 
+        //Read all color from ordered color list
         for (Color color : this.graph.getColorList()) {
-
+            //Check if we have reached color limit or only one component
             if (colors < colorLimit & components > 1) {
-
+                //Init actual best color that reduce components number
                 Color bestColor = null;
-
+                
+                //Check if actual number of colors cover at least one label size
+                //for selection
                 if (colors >= this.graph.getMinLabelLength() - 1) {
-
+                    //Read new color to test solution with actual colors
                     for (Color color2 : this.graph.getColorList()) {
-
+                        //If i haven't selected it
                         if (!color2.isSolution()) {
                             this.graph.resetArchsCheck();
+                            //Insert is in actual solution
                             color2.setChecked(true);
 
                             //After selection of a color, read all archs in the root graph and set 
@@ -284,25 +303,29 @@ public class GraphManager {
                             }
 
                             this.graph.resetNodesCheck();
+                            //Verify number of components using actual Solution due to checked colors
                             subGraphs = this.getSubGraphs(this.graph);
 
                             if (subGraphs.size() < components) {
                                 components = subGraphs.size();
                                 bestColor = color2;
                             }
-
+                            //Reset color to test previous Solution with other color
                             color2.setChecked(false);
                         }
                     }
-
+                    //If I haven't found never new color to decrease components
+                    //I can add the most present color not checked
                     if (bestColor == null) {
                         bestColor = color;
                     }
 
+                //If I haven't reached minimum number of colors for label
+                //I add most present color not checked
                 } else {
                     bestColor = color;
                 }
-
+                //Sign choosen color and add it in Solution
                 bestColor.setChecked(true);
                 bestColor.setSolution(true);
                 //label += " " + String.valueOf(bestColor.getColor());

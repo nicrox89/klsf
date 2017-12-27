@@ -63,22 +63,22 @@ public class KLSF {
     private void saa() {
 
         //Random initial choise
-        this.graphManager.getGraph().resetColorCheck();
+        /*this.graphManager.getGraph().resetColorCheck();
         Collections.shuffle(this.graphManager.getGraph().getColorList());
         double percentage = 0.5;
         for(int i=0; i<((int) (this.graphManager.getGraph().getColorList().size() * percentage)); i++){
             this.graphManager.getGraph().getColorList().get(i).setChecked(true);
             this.graphManager.getGraph().getColorList().get(i).setSolution(true);
-        }
+        }*/
 
         //split original color list into two lists of initial solution colors and excluded colors        
         this.graphManager.colorSplit();
 
         //Simulated Annealing Algorithm - metaheuristic
         double keepingRatio = 1.0;
-        double swapColorRatio = 0.2;
-        int temperature = 10000000;
-        double coolingRate = 0.0003;
+        double swapColorRatio = 0.0;
+        int temperature = 1000000000;
+        double coolingRate = 0.00003;
 
         long startSAA = System.currentTimeMillis();
         this.graphManager.SAA(keepingRatio, swapColorRatio, temperature, coolingRate);

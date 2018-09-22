@@ -99,7 +99,6 @@ public class KLSF {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        //uffffffff
         //String path="/Users/nicolarusso/Desktop/graph.txt";
         String rootPath="C:\\Users\\ilari\\Desktop\\cerrons\\";
         //String path=rootPath+"graph.txt";

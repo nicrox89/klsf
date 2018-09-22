@@ -99,8 +99,13 @@ public class KLSF {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        //uff
         //String path="/Users/nicolarusso/Desktop/graph.txt";
-        String path = "/Users/nicolarusso/Desktop/GrafiColorati3Colori/50_200_50_13_6_test.mlst";
+        String rootPath="C:\\Users\\ilari\\Desktop\\cerrons\\";
+        //String path=rootPath+"graph.txt";
+        //String path=rootPath+"graphMultipleLabels.txt";
+        String path=rootPath+"GrafiColorati3Colori/50_200_50_13_6.mlst";
+        //String path = "/Users/nicolarusso/Desktop/GrafiColorati3Colori/50_200_50_13_6_test.mlst";
         //String path="/Users/nicolarusso/Desktop/GrafiColorati3Colori/500_4000_500_63_5.mlst";
         //String path="/Users/nicolarusso/Desktop/GrafiColorati3Colori/10000_80000_10000_1250_5.mlst";
         //String path="/Users/nicolarusso/Desktop/GrafiColorati3Colori/10000_160000_10000_625_5.mlst";

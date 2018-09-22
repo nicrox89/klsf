@@ -317,7 +317,7 @@ public class GraphManager {
                     //If I have never found new color to decrease components
                     //I can add the most present color not checked
                     if (bestColor == null) {
-                        bestColor = color; // Is the last, we neet the first
+                        bestColor = color; // Is the last, we need the first
                         //we need a for that read the ordered list and get the first unchecked color
                     }
 

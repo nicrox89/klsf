@@ -314,10 +314,11 @@ public class GraphManager {
                             color2.setChecked(false);
                         }
                     }
-                    //If I haven't found never new color to decrease components
+                    //If I have never found new color to decrease components
                     //I can add the most present color not checked
                     if (bestColor == null) {
-                        bestColor = color;
+                        bestColor = color; // Is the last, we need the first
+                        //we need a for that read the ordered list and get the first unchecked color
                     }
 
                 //If I haven't reached minimum number of colors for label

@@ -10,6 +10,8 @@ import entity.Color;
 import entity.Graph;
 import entity.Label;
 import entity.Node;
+import ilog.concert.IloException;
+import ilog.cplex.IloCplex;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -452,7 +454,7 @@ public class GraphManager {
         ArrayList<Graph> subGraphs = this.getSubGraphs(graph);
         return subGraphs.size();
     }
-
+    
     public void colorSplit() {
 
         for (Color colorToClassify : this.getGraph().getColorList()) {
@@ -467,7 +469,7 @@ public class GraphManager {
         System.out.println(" Lista di colori non scelti nella soluzione: " + excludedColorList.toString() + "\n\n");
 
     }
-
+    
     public void SAA(int temperature, double coolingRate) {
         this.SAA(1.0, 1.0, temperature, coolingRate);
     }
@@ -568,4 +570,19 @@ public class GraphManager {
         colorToKeep.addAll(bestSolution);
         System.out.println(" Lista di colori finale: " + colorToKeep);
     }
+    
+    public int modelSolution() {
+        int x = 0;
+        try {
+            this.graph.getColorList().size();
+            IloCplex modello = new IloCplex();
+            //aggiunta nodo nodoSuperSorgente
+            Node nodoSuperSorgente=new Node(this.graph.getNodeList().size());
+            
+            
+        } catch (IloException ex) {
+            Logger.getLogger(GraphManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return x;
+    } 
 }

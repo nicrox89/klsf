@@ -134,7 +134,7 @@ public class KLSF {
         //System.out.println("********************** END **********************\n");
 
         System.out.println("MODELLO MATEMATICO");
-        int componentiSoluzioneModelloMatematico = klsf.graphManager.modelSolution();
+        int componentiSoluzioneModelloMatematico = klsf.graphManager.modelSolution(0.5);
         System.out.println("Componenti modello esatto: " + componentiSoluzioneModelloMatematico);
     }
 }

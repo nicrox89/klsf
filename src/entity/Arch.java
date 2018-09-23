@@ -19,12 +19,14 @@ public class Arch {
     private Node toNode;
     private Label label;
     private boolean checked;
+    private int flow;
     
     public Arch(){
         this.fromNode=null;
         this.toNode=null;
         this.label=null;
         this.checked=false;
+        this.flow = 1;
     }
     
     public Arch(Node fromNode, Node toNode, Label label){
@@ -32,6 +34,7 @@ public class Arch {
         this.toNode=toNode;
         this.label = label;
         this.checked=false;
+        this.flow = 1;
     }
 
     public Node getFromNode() {

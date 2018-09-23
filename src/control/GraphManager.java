@@ -12,6 +12,8 @@ import entity.Label;
 import entity.Node;
 import ilog.concert.IloException;
 import ilog.concert.IloIntVar;
+import ilog.concert.IloLinearIntExpr;
+import ilog.concert.IloLinearNumExpr;
 import ilog.cplex.IloCplex;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -140,7 +142,7 @@ public class GraphManager {
     public Graph getGraph() {
         return graph;
     }
-
+    
     /**
      * Method that create subgraphs checking connected nodes
      *
@@ -572,11 +574,12 @@ public class GraphManager {
         System.out.println(" Lista di colori finale: " + colorToKeep);
     }
     
-    public int modelSolution() {
+    public int modelSolution(double percentage) {
         
         int numNodes=this.graph.getNodeList().size();
         int numEdge=this.graph.getArchList().size();
         int numColors=this.graph.getColorList().size();
+        int colorLimit = (int) (numColors * percentage);
         int components = 0;
         try {
             //this.graph.getColorList().size();
@@ -589,37 +592,62 @@ public class GraphManager {
                 source.getArchList().add(arch);
             }
             
-            //insert model variables for the source edge
+            //insert model variables for the source's edge
             IloIntVar[] sourceEdge = model.boolVarArray(numNodes);    
             for(int i=0;i<source.getArchList().size();i++){
                 sourceEdge[i] = model.intVar(0, 1, "sEdge->" + source.getId() + "-" + source.getArchList().get(i).getToNode().getId());
             }
             
-            //insert model variables for the graph edge
+            //insert model variables for the graph's edge
             IloIntVar[] graphEdge = model.boolVarArray(numEdge);    
-            for(int i=0;i<this.graph.getArchList().size();i++){
+            for(int i=0;i<numEdge;i++){
                 graphEdge[i] = model.intVar(0, 1, "gEdge->" + this.graph.getArchList().get(i).getFromNode() + "-" + this.graph.getArchList().get(i).getToNode());
             }
             
             //insert model variables for the colors
             IloIntVar[] colors = model.boolVarArray(numColors);
-            for (int i = 0; i < this.graph.getColorList().size(); i++) {
+            for (int i = 0; i < numColors; i++) {
                 colors[i] = model.intVar(0, 1, "color-" + this.graph.getColorList().get(i).getColor());
             }
             
-            //insert model variables for source flow
+            //insert model variables for source's flow (n, lb, ub)
             IloIntVar[] sourceflow = model.intVarArray(numNodes , 0, numNodes);
-            for (int i = 0; i < this.graph.getNodeList().size(); i++) {
+            for (int i = 0; i < numNodes; i++) {
                 sourceflow[i] = model.intVar(0, numNodes, "sFlow->" + source.getId() + "-" + this.graph.getNodeList().get(i).getId());        
             }
             
-            //insert model variables for graph flow
+            //insert model variables for graph's flow
             IloIntVar[] graphFlowPositive = model.intVarArray(numEdge, 0, numNodes);
             IloIntVar[] graphFlowNegative = model.intVarArray(numEdge, 0, numNodes);
             for (int i = 0; i < this.graph.getArchList().size(); i++) {
                 graphFlowPositive[i] = model.intVar(0, numNodes, "gFlow->" + this.graph.getArchList().get(i).getFromNode().getId() + "-" + this.graph.getArchList().get(i).getToNode().getId());
                 graphFlowNegative[i] = model.intVar(0, numNodes, "gFlow->" + this.graph.getArchList().get(i).getToNode().getId() + "-" + this.graph.getArchList().get(i).getFromNode().getId());
-            }  
+            } 
+            
+            //Objective function
+            //minimize source's edges
+            IloLinearNumExpr objective = model.linearNumExpr();
+            for(int i = 0; i < numNodes; i++){
+                objective.addTerm(sourceEdge[i], 1);
+            }
+            model.addMinimize(objective);
+            System.out.println("objective function : minimize"+objective);
+            
+            //constraint 1  
+            //constraint on model's colors
+            System.out.println("constraint 1 :");
+            
+            IloLinearNumExpr chosenColors = model.linearNumExpr();
+            for(int i=0;i<numColors;i++){
+                chosenColors.addTerm(1.0, colors[i]);
+            }
+            //model's colors <= limit of colors fixed(K) (Cp<=K)
+            model.addLe(chosenColors, colorLimit);
+            System.out.println(chosenColors + " <= " + colorLimit);
+            
+            //constraint 2
+            //vincolo arco e prendere i colori dell'arco ad esso associato
+            System.out.println("constraint 2 :");
             
             int z=0;// end breakpoint
             

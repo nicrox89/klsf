@@ -7,6 +7,10 @@ package klsf;
 
 import control.GraphManager;
 import entity.Color;
+import entity.Graph;
+import entity.Node;
+import ilog.concert.IloException;
+import ilog.cplex.IloCplex;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -42,7 +46,7 @@ public class KLSF {
 
         //ArrayList<Color> selectedColorList = graphManager.getGraph().getSelectedColorList();
     }
-
+    
     private void random() {
         
         long startRandom = System.currentTimeMillis();
@@ -99,6 +103,7 @@ public class KLSF {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        
         //String path="/Users/nicolarusso/Desktop/graph.txt";
         String rootPath="C:\\Users\\ilari\\Desktop\\cerrons\\";
         //String path=rootPath+"graph.txt";
@@ -110,7 +115,7 @@ public class KLSF {
         //String path="/Users/nicolarusso/Desktop/GrafiColorati3Colori/10000_160000_10000_625_5.mlst";
 
         KLSF klsf = new KLSF(path);
-
+        
         System.out.println("\n\n\n******************** Greedy ********************\n");
         klsf.greedy();
         System.out.println("********************** END **********************\n");
@@ -123,6 +128,8 @@ public class KLSF {
         klsf.saa();
         System.out.println("********************** END **********************\n");
 
+        System.out.println("MODELLO MATEMATICO");
+        int componentiSoluzioneModelloMatematico = klsf.graphManager.modelSolution();
+        System.out.println("Componenti modello esatto: " + componentiSoluzioneModelloMatematico);
     }
-
 }

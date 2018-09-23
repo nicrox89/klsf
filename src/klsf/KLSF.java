@@ -105,10 +105,11 @@ public class KLSF {
     public static void main(String[] args) {
         
         //String path="/Users/nicolarusso/Desktop/graph.txt";
-        String rootPath="C:\\Users\\ilari\\Desktop\\cerrons\\";
+        //String rootPath="C:\\Users\\ilari\\Desktop\\cerrons\\";
+        String rootPath="/Users/nicolarusso/Desktop/";
         //String path=rootPath+"graph.txt";
         //String path=rootPath+"graphMultipleLabels.txt";
-        String path=rootPath+"GrafiColorati3Colori/50_200_50_13_6.mlst";
+        String path=rootPath+"GrafiColorati3Colori/50_200_50_13_6_test.mlst";
         //String path = "/Users/nicolarusso/Desktop/GrafiColorati3Colori/50_200_50_13_6_test.mlst";
         //String path="/Users/nicolarusso/Desktop/GrafiColorati3Colori/500_4000_500_63_5.mlst";
         //String path="/Users/nicolarusso/Desktop/GrafiColorati3Colori/10000_80000_10000_1250_5.mlst";
@@ -116,17 +117,17 @@ public class KLSF {
 
         KLSF klsf = new KLSF(path);
         
-        System.out.println("\n\n\n******************** Greedy ********************\n");
-        klsf.greedy();
-        System.out.println("********************** END **********************\n");
+        //System.out.println("\n\n\n******************** Greedy ********************\n");
+        //klsf.greedy();
+        //System.out.println("********************** END **********************\n");
         
 //        System.out.println("\n\n\n******************** Random ********************\n");
 //        klsf.random();
 //        System.out.println("********************** END **********************\n");
         
-        System.out.println("\n\n\n********* Simulated Annealing Algorithm ********\n");
-        klsf.saa();
-        System.out.println("********************** END **********************\n");
+        //System.out.println("\n\n\n********* Simulated Annealing Algorithm ********\n");
+        //klsf.saa();
+        //System.out.println("********************** END **********************\n");
 
         System.out.println("MODELLO MATEMATICO");
         int componentiSoluzioneModelloMatematico = klsf.graphManager.modelSolution();

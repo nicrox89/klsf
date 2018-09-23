@@ -11,6 +11,7 @@ import entity.Graph;
 import entity.Label;
 import entity.Node;
 import ilog.concert.IloException;
+import ilog.concert.IloIntVar;
 import ilog.cplex.IloCplex;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -572,26 +573,59 @@ public class GraphManager {
     }
     
     public int modelSolution() {
-        int x = 0;
-        try {
-            this.graph.getColorList().size();
-            IloCplex modello = new IloCplex();
-            //aggiunta nodo nodoSuperSorgente
-            Node source =new Node(this.graph.getNodeList().size());
-            
-            for(Node nodo : this.graph.getNodeList()){
         
-                ArcoSorgente arcoDellaSorgente = new ArcoSorgente(nodoSuperSorgente, nodo);
-                //System.out.println("nodo  Sorgente "+nodoSuperSorgente.key);
-                //System.out.println("nodo dest Sorgente "+nodo.key);
-                arcoDellaSorgente.destinazione.archiSorgente.add(arcoDellaSorgente);
-                arcoDellaSorgente.sorgente.archiSorgente.add(arcoDellaSorgente);
-                //sorgente.archiSorgente.add(arcoDellaSorgente);
+        int numNodes=this.graph.getNodeList().size();
+        int numEdge=this.graph.getArchList().size();
+        int numColors=this.graph.getColorList().size();
+        int components = 0;
+        try {
+            //this.graph.getColorList().size();
+            IloCplex model = new IloCplex();
+            
+            //make source node
+            Node source =new Node(numNodes);
+            for(Node node : this.graph.getNodeList()){
+                Arch arch = new Arch(source, node ,null);
+                source.getArchList().add(arch);
             }
+            
+            //insert model variables for the source edge
+            IloIntVar[] sourceEdge = model.boolVarArray(numNodes);    
+            for(int i=0;i<source.getArchList().size();i++){
+                sourceEdge[i] = model.intVar(0, 1, "sEdge->" + source.getId() + "-" + source.getArchList().get(i).getToNode().getId());
+            }
+            
+            //insert model variables for the graph edge
+            IloIntVar[] graphEdge = model.boolVarArray(numEdge);    
+            for(int i=0;i<this.graph.getArchList().size();i++){
+                graphEdge[i] = model.intVar(0, 1, "gEdge->" + this.graph.getArchList().get(i).getFromNode() + "-" + this.graph.getArchList().get(i).getToNode());
+            }
+            
+            //insert model variables for the colors
+            IloIntVar[] colors = model.boolVarArray(numColors);
+            for (int i = 0; i < this.graph.getColorList().size(); i++) {
+                colors[i] = model.intVar(0, 1, "color-" + this.graph.getColorList().get(i).getColor());
+            }
+            
+            //insert model variables for source flow
+            IloIntVar[] sourceflow = model.intVarArray(numNodes , 0, numNodes);
+            for (int i = 0; i < this.graph.getNodeList().size(); i++) {
+                sourceflow[i] = model.intVar(0, numNodes, "sFlow->" + source.getId() + "-" + this.graph.getNodeList().get(i).getId());        
+            }
+            
+            //insert model variables for graph flow
+            IloIntVar[] graphFlowPositive = model.intVarArray(numEdge, 0, numNodes);
+            IloIntVar[] graphFlowNegative = model.intVarArray(numEdge, 0, numNodes);
+            for (int i = 0; i < this.graph.getArchList().size(); i++) {
+                graphFlowPositive[i] = model.intVar(0, numNodes, "gFlow->" + this.graph.getArchList().get(i).getFromNode().getId() + "-" + this.graph.getArchList().get(i).getToNode().getId());
+                graphFlowNegative[i] = model.intVar(0, numNodes, "gFlow->" + this.graph.getArchList().get(i).getToNode().getId() + "-" + this.graph.getArchList().get(i).getFromNode().getId());
+            }  
+            
+            int z=0;// end breakpoint
             
         } catch (IloException ex) {
             Logger.getLogger(GraphManager.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return x;
+        return components;
     } 
 }

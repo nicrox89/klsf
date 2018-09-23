@@ -577,8 +577,17 @@ public class GraphManager {
             this.graph.getColorList().size();
             IloCplex modello = new IloCplex();
             //aggiunta nodo nodoSuperSorgente
-            Node nodoSuperSorgente=new Node(this.graph.getNodeList().size());
+            Node source =new Node(this.graph.getNodeList().size());
             
+            for(Node nodo : this.graph.getNodeList()){
+        
+                ArcoSorgente arcoDellaSorgente = new ArcoSorgente(nodoSuperSorgente, nodo);
+                //System.out.println("nodo  Sorgente "+nodoSuperSorgente.key);
+                //System.out.println("nodo dest Sorgente "+nodo.key);
+                arcoDellaSorgente.destinazione.archiSorgente.add(arcoDellaSorgente);
+                arcoDellaSorgente.sorgente.archiSorgente.add(arcoDellaSorgente);
+                //sorgente.archiSorgente.add(arcoDellaSorgente);
+            }
             
         } catch (IloException ex) {
             Logger.getLogger(GraphManager.class.getName()).log(Level.SEVERE, null, ex);

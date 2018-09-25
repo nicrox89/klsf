@@ -247,7 +247,7 @@ public class GraphManager {
      * 
      * @param percentage 
      */
-    public void greedyIvan(double percentage) {
+    public void greedy(double percentage) {
         
         //Set color limit based on the percentage input parameter
         int colorLimit = (int) (this.graph.getColorList().size() * percentage);
@@ -598,7 +598,7 @@ public class GraphManager {
                 sourceEdge[i] = model.intVar(0, 1, "sEdge->" + source.getId() + "-" + source.getArchList().get(i).getToNode().getId());
             }
             
-            //insert model variables for the graph's edge
+            //insert model variables for the model/graph's edge
             IloIntVar[] graphEdge = model.boolVarArray(numEdge);    
             for(int i=0;i<numEdge;i++){
                 graphEdge[i] = model.intVar(0, 1, "gEdge->" + this.graph.getArchList().get(i).getFromNode() + "-" + this.graph.getArchList().get(i).getToNode());
@@ -611,9 +611,9 @@ public class GraphManager {
             }
             
             //insert model variables for source's flow (n, lb, ub)
-            IloIntVar[] sourceflow = model.intVarArray(numNodes , 0, numNodes);
+            IloIntVar[] sourceFlowEdges = model.intVarArray(numNodes , 0, numNodes);
             for (int i = 0; i < numNodes; i++) {
-                sourceflow[i] = model.intVar(0, numNodes, "sFlow->" + source.getId() + "-" + this.graph.getNodeList().get(i).getId());        
+                sourceFlowEdges[i] = model.intVar(0, numNodes, "sFlow->" + source.getId() + "-" + this.graph.getNodeList().get(i).getId());        
             }
             
             //insert model variables for graph's flow
@@ -625,7 +625,7 @@ public class GraphManager {
             } 
             
             //Objective function
-            //minimize source's edges
+            //minimize source's edges as number of components
             IloLinearNumExpr objective = model.linearNumExpr();
             for(int i = 0; i < numNodes; i++){
                 objective.addTerm(sourceEdge[i], 1);
@@ -645,9 +645,29 @@ public class GraphManager {
             model.addLe(chosenColors, colorLimit);
             System.out.println(chosenColors + " <= " + colorLimit);
             
-            //constraint 2
-            //vincolo arco e prendere i colori dell'arco ad esso associato
-            System.out.println("constraint 2 :");
+            //constraint 2  TO ANALYZE!!
+            System.out.println("constraint 2 :");  
+
+            //for each edge
+            for (int i = 0; i < numEdge; i++) {
+                //for each color of the ith edge's label
+                for (int j = 0; j < this.graph.getArchList().get(i).getLabel().getColors().size(); j++) {  // ?
+                    //for each graph's color
+                    for (int k = 0; k < numColors; k++) {
+                        //if the color kth is equal to the jth
+                        if (this.graph.getArchList().get(i).getLabel().getColors().get(j).getColor()== this.graph.getColorList().get(k).getColor()) {
+                            IloLinearIntExpr colorsConstraintTerm = model.linearIntExpr();
+                            IloLinearIntExpr edgesConstraintTerm = model.linearIntExpr();
+                            colorsConstraintTerm.addTerm(colors[k], 1);
+                            edgesConstraintTerm.addTerm(graphEdge[i], 1);
+                            //confronto colore-arco 
+                            model.addGe(colorsConstraintTerm, edgesConstraintTerm);
+                            System.out.println(colorsConstraintTerm + " >= " + edgesConstraintTerm);
+                            break;
+                        }
+                    }
+                }
+            }
             
             int z=0;// end breakpoint
             

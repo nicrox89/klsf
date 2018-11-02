@@ -15,6 +15,7 @@ public class Label {
     private ArrayList<Color> colors;
     private boolean checked;
     private int archs;
+    private int id;
     
     public Label(ArrayList<Color> label){
         this.colors=label;
@@ -49,6 +50,15 @@ public class Label {
     public void increaseArchs(){
         this.archs++;
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+    
     
     
 }

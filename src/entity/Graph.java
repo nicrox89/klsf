@@ -22,6 +22,7 @@ public class Graph {
     private ArrayList<Label> labelList;
     private HashMap<String, Label> labels;
     private int minLabelLength;
+    private int id;
 
     public Graph() {
         this.nodeList = new ArrayList<Node>();
@@ -239,5 +240,15 @@ public class Graph {
             }
         }
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+    
+    
 
 }

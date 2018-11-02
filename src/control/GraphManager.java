@@ -40,7 +40,7 @@ public class GraphManager {
     public ArrayList<Color> excludedColorList;
 
     /**
-     *
+     * Initialize the graph
      */
     public GraphManager() {
         this.graph = new Graph();

@@ -20,6 +20,7 @@ public class Arch {
     private Label label;
     private boolean checked;
     private int flow;
+    private int id;
     
     public Arch(){
         this.fromNode=null;
@@ -68,6 +69,16 @@ public class Arch {
     public void setChecked(boolean checked) {
         this.checked = checked;
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+    
+    
     
     
 }

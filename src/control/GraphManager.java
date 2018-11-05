@@ -578,13 +578,13 @@ public class GraphManager {
         System.out.println(" Lista di colori finale: " + colorToKeep);
     }
     
-    public int modelSolution(double percentage) {
+    public double modelSolution(double percentage) {
         
         int numNodes=this.graph.getNodeList().size();
         int numEdge=this.graph.getArchList().size();
         int numColors=this.graph.getColorList().size();
         int colorLimit = (int) (numColors * percentage);
-        int components = 0;
+        double components = 0;
         try {
             //this.graph.getColorList().size();
             IloCplex model = new IloCplex();
@@ -694,7 +694,7 @@ public class GraphManager {
                     IloLinearIntExpr edgesConstraintTerm = model.linearIntExpr();
                     colorsConstraintTerm.addTerm(colors[c.getColor()], 1);
                     edgesConstraintTerm.addTerm(graphEdges[i], 1);
-                    //confronto colore-arco 
+                    //compare color-edge 
                     model.addGe(colorsConstraintTerm, edgesConstraintTerm);
                     System.out.println(colorsConstraintTerm + " >= " + edgesConstraintTerm);
                 }
@@ -727,44 +727,50 @@ public class GraphManager {
             
             
             //constraint 5
-            //vincolo che collega il flusso interno  con le variabili arco
-            //System.out.println("vincolo 5 :");
-            for (int i = 0; i < numEdge; i++) {
-                IloLinearIntExpr vincoloFlussointerno_1_1 = model.linearIntExpr();
-                IloLinearIntExpr vincoloFlussoInterno_1_2 = model.linearIntExpr();
-                vincoloFlussointerno_1_1.addTerm(graphFlowEdgesPositives[i], 1);
-                vincoloFlussoInterno_1_2.addTerm(graphEdges[i], numNodes);
-                model.addLe(vincoloFlussointerno_1_1, vincoloFlussoInterno_1_2);
-                //System.out.println(vincoloFlussointerno_1_1 + " <= " + vincoloFlussoInterno_1_2);
+            //System.out.println("constraint 5 :");
+            for (Arch a: this.graph.getArchList()) {                            
+                IloLinearIntExpr internalPositiveFlowConstraint = model.linearIntExpr();
+                IloLinearIntExpr graphEdgesConstraint1 = model.linearIntExpr();
+                internalPositiveFlowConstraint.addTerm(graphFlowEdgesPositives[a.getId()], 1);
+                graphEdgesConstraint1.addTerm(graphEdges[a.getId()], numNodes);
+                model.addLe(internalPositiveFlowConstraint, graphEdgesConstraint1);
 
-                IloLinearIntExpr vincoloFlussoInterno_2_1 = model.linearIntExpr();
-                IloLinearIntExpr vincoloFlussoInterno_2_2 = model.linearIntExpr();
-                vincoloFlussoInterno_2_1.addTerm(graphFlowEdgesNegatives[i], 1);
-                vincoloFlussoInterno_2_2.addTerm(graphEdges[i], numNodes);
-                model.addLe(vincoloFlussoInterno_2_1, vincoloFlussoInterno_2_2);
-                //System.out.println(vincoloFlussoInterno_2_1 + " <= " + vincoloFlussoInterno_2_2);
+                IloLinearIntExpr internalNegativeFlowConstraint = model.linearIntExpr();
+                IloLinearIntExpr graphEdgesConstraint2 = model.linearIntExpr();
+                internalNegativeFlowConstraint.addTerm(graphFlowEdgesNegatives[a.getId()], 1);
+                graphEdgesConstraint2.addTerm(graphEdges[a.getId()], numNodes);
+                model.addLe(internalNegativeFlowConstraint, graphEdgesConstraint2);
             }   
+            
             //constraint 6    
-            //vincolo che collega il flusso sorgente  con le variabili arco sorgente
-            //System.out.println("vincolo 6 :");
-            for (int i = 0; i < numNodes; i++) {
-                IloLinearIntExpr vincoloFlussoSorgente_1_1 = model.linearIntExpr();
-                IloLinearIntExpr vincoloFlussoSorgente_1_2 = model.linearIntExpr();
-                vincoloFlussoSorgente_1_1.addTerm(sourceFlowEdges[i], 1);
-                vincoloFlussoSorgente_1_2.addTerm(sourceEdges[i], numNodes);
-                model.addLe(vincoloFlussoSorgente_1_1, vincoloFlussoSorgente_1_2);
-                //System.out.println(vincoloFlussoSorgente_1_1 + " <= " + vincoloFlussoSorgente_1_2);
+            //System.out.println("constraint 6 :");
+            for (Node n: this.graph.getNodeList()) {
+                IloLinearIntExpr sourceFlowConstraint = model.linearIntExpr();
+                IloLinearIntExpr sourceEdgesConstraint = model.linearIntExpr();
+                sourceFlowConstraint.addTerm(sourceFlowEdges[n.getId()], 1);
+                sourceEdgesConstraint.addTerm(sourceEdges[n.getId()], numNodes);
+                model.addLe(sourceFlowConstraint, sourceEdgesConstraint);
             } 
-                    
-                    
+            
+            //constraint 5+6    ??
+            //System.out.println("constraint 5+6 :");
+//            for (Node n: this.graph.getNodeList()) {
+//                IloLinearIntExpr sourceFlowConstraint = model.linearIntExpr();
+//                IloLinearIntExpr sourceEdgesConstraint = model.linearIntExpr();
+//                sourceFlowConstraint.addTerm(sourceFlowEdges[n.getId()], 1);
+//                sourceEdgesConstraint.addTerm(sourceEdges[n.getId()], numNodes);
+//                model.addLe(sourceFlowConstraint, sourceEdgesConstraint);
+//            } 
+            
+                                       
                 
             //Model Solution
-            ArrayList<Arch> solutionArch = new ArrayList<>();
+            
             model.setParam(IloCplex.DoubleParam.TimeLimit,3600);
             
             if (model.solve()) {
-                System.out.println("Soluzione componenti modello matematico: " + (model.getObjValue()));
-                
+                System.out.println("Model Solution: " + (model.getObjValue()));
+                components = model.getObjValue();
                 model.end();
             }
             

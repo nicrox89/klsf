@@ -30,12 +30,13 @@ public class Arch {
         this.flow = 1;
     }
     
-    public Arch(Node fromNode, Node toNode, Label label){
+    public Arch(Node fromNode, Node toNode, Label label, int id){
         this.fromNode=fromNode;
         this.toNode=toNode;
         this.label = label;
         this.checked=false;
         this.flow = 1;
+        this.id=id;
     }
 
     public Node getFromNode() {

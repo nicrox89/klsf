@@ -70,6 +70,7 @@ public class GraphManager {
 
             //Get data lines
             line = in.readLine();
+            int id_arch=0;
             while (line != null) {
 
                 //Split line and selectedArch data
@@ -109,7 +110,7 @@ public class GraphManager {
                 //Make the readed Arch Object
                 Arch arch = new Arch(this.graph.getNodeList().get(Integer.valueOf(items[0])),
                         this.graph.getNodeList().get(Integer.valueOf(items[1])),
-                        label);
+                        label, id_arch++);
 
                 //Add Arch Object to archList
                 this.graph.getArchList().add(arch);
@@ -586,23 +587,29 @@ public class GraphManager {
             IloCplex model = new IloCplex();
             
             //make source node
-            Node source =new Node(numNodes);
+            int numEdgeSN=0;
+            Node source =new Node(numNodes);//may be ++
             for(Node node : this.graph.getNodeList()){
-                Arch arch = new Arch(source, node ,null);
+                Arch arch = new Arch(source, node ,null,numEdgeSN++);
                 source.getArchList().add(arch);
             }
             
+            
+            
             //insert model variables for the source's edge
-            IloIntVar[] sourceEdge = model.boolVarArray(numNodes);    
+            IloIntVar[] sourceEdges = model.boolVarArray(numNodes);    
             for(int i=0;i<source.getArchList().size();i++){
-                sourceEdge[i] = model.intVar(0, 1, "sEdge->" + source.getId() + "-" + source.getArchList().get(i).getToNode().getId());
+                sourceEdges[i] = model.intVar(0, 1, "sEdge->" + source.getId() + "-" + source.getArchList().get(i).getToNode().getId());
             }
             
             //insert model variables for the model/graph's edge
-            IloIntVar[] graphEdge = model.boolVarArray(numEdge);    
-            for(int i=0;i<numEdge;i++){
-                graphEdge[i] = model.intVar(0, 1, "gEdge->" + this.graph.getArchList().get(i).getFromNode() + "-" + this.graph.getArchList().get(i).getToNode());
+            IloIntVar[] graphEdges = model.boolVarArray(numEdge); 
+            for(Arch a : this.graph.getArchList()){
+                graphEdges[a.getId()]=model.intVar(0, 1, "gEdge->" + a.getFromNode() + "-" + a.getToNode());
             }
+            //for(int i=0;i<numEdge;i++){
+            //    graphEdges[i] = model.intVar(0, 1, "gEdge->" + this.graph.getArchList().get(i).getFromNode() + "-" + this.graph.getArchList().get(i).getToNode());
+            //}
             
             //insert model variables for the colors
             IloIntVar[] colors = model.boolVarArray(numColors);
@@ -610,28 +617,35 @@ public class GraphManager {
                 colors[i] = model.intVar(0, 1, "color-" + this.graph.getColorList().get(i).getColor());
             }
             
-            //insert model variables for source's flow (n, lb, ub)
+            
+            
+            //insert model variables for source's flow (number, lower bound, upper bound)
             IloIntVar[] sourceFlowEdges = model.intVarArray(numNodes , 0, numNodes);
             for (int i = 0; i < numNodes; i++) {
                 sourceFlowEdges[i] = model.intVar(0, numNodes, "sFlow->" + source.getId() + "-" + this.graph.getNodeList().get(i).getId());        
             }
             
             //insert model variables for graph's flow
-            IloIntVar[] graphFlowPositive = model.intVarArray(numEdge, 0, numNodes);
-            IloIntVar[] graphFlowNegative = model.intVarArray(numEdge, 0, numNodes);
-            for (int i = 0; i < this.graph.getArchList().size(); i++) {
-                graphFlowPositive[i] = model.intVar(0, numNodes, "gFlow->" + this.graph.getArchList().get(i).getFromNode().getId() + "-" + this.graph.getArchList().get(i).getToNode().getId());
-                graphFlowNegative[i] = model.intVar(0, numNodes, "gFlow->" + this.graph.getArchList().get(i).getToNode().getId() + "-" + this.graph.getArchList().get(i).getFromNode().getId());
+            IloIntVar[] graphFlowEdgesPositives = model.intVarArray(numEdge, 0, numNodes);
+            IloIntVar[] graphFlowEdgesNegatives = model.intVarArray(numEdge, 0, numNodes);
+            for (int i = 0; i < numEdge; i++) {
+                graphFlowEdgesPositives[i] = model.intVar(0, numNodes, "gFlow->" + this.graph.getArchList().get(i).getFromNode().getId() + "-" + this.graph.getArchList().get(i).getToNode().getId());
+                graphFlowEdgesNegatives[i] = model.intVar(0, numNodes, "gFlow->" + this.graph.getArchList().get(i).getToNode().getId() + "-" + this.graph.getArchList().get(i).getFromNode().getId());
             } 
+            
+            
+            
             
             //Objective function
             //minimize source's edges as number of components
             IloLinearNumExpr objective = model.linearNumExpr();
             for(int i = 0; i < numNodes; i++){
-                objective.addTerm(sourceEdge[i], 1);
+                objective.addTerm(sourceEdges[i], 1);
             }
             model.addMinimize(objective);
             System.out.println("objective function : minimize"+objective);
+            
+            
             
             //constraint 1  
             //constraint on model's colors
@@ -645,31 +659,89 @@ public class GraphManager {
             model.addLe(chosenColors, colorLimit);
             System.out.println(chosenColors + " <= " + colorLimit);
             
-            //constraint 2  TO ANALYZE!!
+            //constraint 2
             System.out.println("constraint 2 :");  
 
             //for each edge
             for (int i = 0; i < numEdge; i++) {
                 //for each color of the ith edge's label
-                for (int j = 0; j < this.graph.getArchList().get(i).getLabel().getColors().size(); j++) {  // ?
+                for (Color c: this.graph.getArchList().get(i).getLabel().getColors()) {
                     //for each graph's color
-                    for (int k = 0; k < numColors; k++) {
-                        //if the color kth is equal to the jth
-                        if (this.graph.getArchList().get(i).getLabel().getColors().get(j).getColor()== this.graph.getColorList().get(k).getColor()) {
-                            IloLinearIntExpr colorsConstraintTerm = model.linearIntExpr();
-                            IloLinearIntExpr edgesConstraintTerm = model.linearIntExpr();
-                            colorsConstraintTerm.addTerm(colors[k], 1);
-                            edgesConstraintTerm.addTerm(graphEdge[i], 1);
-                            //confronto colore-arco 
-                            model.addGe(colorsConstraintTerm, edgesConstraintTerm);
-                            System.out.println(colorsConstraintTerm + " >= " + edgesConstraintTerm);
-                            break;
-                        }
-                    }
+                    IloLinearIntExpr colorsConstraintTerm = model.linearIntExpr();
+                    IloLinearIntExpr edgesConstraintTerm = model.linearIntExpr();
+                    colorsConstraintTerm.addTerm(colors[c.getColor()], 1);
+                    edgesConstraintTerm.addTerm(graphEdges[i], 1);
+                    //confronto colore-arco 
+                    model.addGe(colorsConstraintTerm, edgesConstraintTerm);
+                    System.out.println(colorsConstraintTerm + " >= " + edgesConstraintTerm);
                 }
             }
             
-            int z=0;// end breakpoint
+            
+            //constraint 3
+            IloLinearIntExpr sourceFlow = model.linearIntExpr();
+            for (int i = 0; i < source.getArchList().size(); i++){
+                    sourceFlow.addTerm(sourceFlowEdges[i], 1);
+            }
+            //System.out.println(sommaFlussoSorgente + " = " + g.numeroNodi);
+            model.addEq(sourceFlow,numNodes);
+            
+            
+            //constraint 4
+            for(Node n: this.graph.getNodeList()){
+                IloLinearIntExpr totalFlow = model.linearIntExpr();
+                totalFlow.addTerm(sourceFlowEdges[n.getId()],1);
+                for(Arch a: n.getArchList()){
+                    totalFlow.addTerm(graphFlowEdgesPositives[a.getId()], 1);
+                    totalFlow.addTerm(graphFlowEdgesNegatives[a.getId()], 1);
+                }
+                model.addEq(totalFlow, 1);
+            }
+            
+            
+            
+            
+            //vincolo 5
+            //vincolo che collega il flusso interno  con le variabili arco
+            //System.out.println("vincolo 5 :");
+            for (int i = 0; i < numEdge; i++) {
+                IloLinearIntExpr vincoloFlussointerno_1_1 = model.linearIntExpr();
+                IloLinearIntExpr vincoloFlussoInterno_1_2 = model.linearIntExpr();
+                vincoloFlussointerno_1_1.addTerm(graphFlowEdgesPositives[i], 1);
+                vincoloFlussoInterno_1_2.addTerm(graphEdges[i], numNodes);
+                model.addLe(vincoloFlussointerno_1_1, vincoloFlussoInterno_1_2);
+                //System.out.println(vincoloFlussointerno_1_1 + " <= " + vincoloFlussoInterno_1_2);
+
+                IloLinearIntExpr vincoloFlussoInterno_2_1 = model.linearIntExpr();
+                IloLinearIntExpr vincoloFlussoInterno_2_2 = model.linearIntExpr();
+                vincoloFlussoInterno_2_1.addTerm(graphFlowEdgesNegatives[i], 1);
+                vincoloFlussoInterno_2_2.addTerm(graphEdges[i], numNodes);
+                model.addLe(vincoloFlussoInterno_2_1, vincoloFlussoInterno_2_2);
+                //System.out.println(vincoloFlussoInterno_2_1 + " <= " + vincoloFlussoInterno_2_2);
+            }   
+            //vincolo6    
+            //vincolo che collega il flusso sorgente  con le variabili arco sorgente
+            //System.out.println("vincolo 6 :");
+            for (int i = 0; i < numNodes; i++) {
+                IloLinearIntExpr vincoloFlussoSorgente_1_1 = model.linearIntExpr();
+                IloLinearIntExpr vincoloFlussoSorgente_1_2 = model.linearIntExpr();
+                vincoloFlussoSorgente_1_1.addTerm(sourceFlowEdges[i], 1);
+                vincoloFlussoSorgente_1_2.addTerm(sourceEdges[i], numNodes);
+                model.addLe(vincoloFlussoSorgente_1_1, vincoloFlussoSorgente_1_2);
+                //System.out.println(vincoloFlussoSorgente_1_1 + " <= " + vincoloFlussoSorgente_1_2);
+            } 
+                    
+                    
+                
+            //Model Solution
+            ArrayList<Arch> solutionArch = new ArrayList<>();
+            model.setParam(IloCplex.DoubleParam.TimeLimit,3600);
+            
+            if (model.solve()) {
+                System.out.println("Soluzione componenti modello matematico: " + (model.getObjValue()));
+                
+                model.end();
+            }
             
         } catch (IloException ex) {
             Logger.getLogger(GraphManager.class.getName()).log(Level.SEVERE, null, ex);

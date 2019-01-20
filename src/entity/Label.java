@@ -11,7 +11,7 @@ import java.util.ArrayList;
  *
  * @author nicolarusso
  */
-public class Label {
+public class Label implements Comparable<Label>{
     private ArrayList<Color> colors;
     private boolean checked;
     private int archs;
@@ -59,6 +59,9 @@ public class Label {
         this.id = id;
     }
     
-    
+    @Override
+    public int compareTo(Label otherLabel) {
+        return Integer.compare(archs, otherLabel.getArchs());
+    }
     
 }

@@ -32,7 +32,8 @@ public class KLSF {
         //System.out.println("Label più piccola: " + graphManager.getGraph().getMinLabelLength());
 
         long startGreedy = System.currentTimeMillis();
-        this.graphManager.greedyIvan(0.5);
+        this.graphManager.greedy(25);
+        //this.graphManager.greedyDesc();
         long endGreedy = System.currentTimeMillis();
         long differenzaTempoGreedy = endGreedy - startGreedy;
         if (differenzaTempoGreedy > 1000) {
@@ -79,13 +80,13 @@ public class KLSF {
         this.graphManager.colorSplit();
 
         //Simulated Annealing Algorithm - metaheuristic
-        double keepingRatio = 1.0;
-        double swapColorRatio = 0.0;
+        double keepingRatio = 0.5;
+        int swapColor = 1;
         int temperature = 1000000000;
         double coolingRate = 0.00003;
 
         long startSAA = System.currentTimeMillis();
-        this.graphManager.SAA(keepingRatio, swapColorRatio, temperature, coolingRate);
+        this.graphManager.SAA(keepingRatio, swapColor, temperature, coolingRate);
         long endSAA = System.currentTimeMillis();
 
         long differenzaTempoSAA = endSAA - startSAA;
@@ -106,13 +107,17 @@ public class KLSF {
         
         //String path="/Users/nicolarusso/Desktop/graph.txt";
         
-        String rootPath="C:\\Users\\ilari\\Desktop\\cerrons\\";
         //String rootPath="/Users/nicolarusso/Desktop/";
+        String rootPath="C:\\Users\\ilari\\Desktop\\cerrone\\";
         //String path=rootPath+"graph.txt";
         //String path=rootPath+"graphMultipleLabels.txt";
         
         String path=rootPath+"GrafiColorati3Colori/50_200_50_13_6.mlst";
+        //String path=rootPath+"GrafiColorati3Colori/test_sort.mlst";
+        //String path=rootPath+"GrafiColorati3Colori/50_200_50_13_6.mlst";
         //String path=rootPath+"GrafiColorati3Colori/50_200_50_13_6_test.mlst";
+        //String path=rootPath+"GrafiColorati3Colori/test.mlst";
+        //String path=rootPath+"GrafiColorati3Colori/1000_8000_1000_125_5.mlst";
         
         //String path = "/Users/nicolarusso/Desktop/GrafiColorati3Colori/50_200_50_13_6_test.mlst";
         //String path="/Users/nicolarusso/Desktop/GrafiColorati3Colori/500_4000_500_63_5.mlst";
@@ -121,20 +126,21 @@ public class KLSF {
 
         KLSF klsf = new KLSF(path);
         
-        //System.out.println("\n\n\n******************** Greedy ********************\n");
-        //klsf.greedy();
-        //System.out.println("********************** END **********************\n");
+        System.out.println("\n\n\n******************** Greedy ********************\n");
+        klsf.greedy();
+        System.out.println("********************** END **********************\n");
+        /*
+        System.out.println("\n\n\n******************** Random ********************\n");
+        klsf.random();
+        System.out.println("********************** END **********************\n");
+        */
+        System.out.println("\n\n\n********* Simulated Annealing Algorithm ********\n");
+        klsf.saa();
+        System.out.println("********************** END **********************\n");
         
-//        System.out.println("\n\n\n******************** Random ********************\n");
-//        klsf.random();
-//        System.out.println("********************** END **********************\n");
         
-        //System.out.println("\n\n\n********* Simulated Annealing Algorithm ********\n");
-        //klsf.saa();
-        //System.out.println("********************** END **********************\n");
-
-        System.out.println("MODELLO MATEMATICO");
-        int componentiSoluzioneModelloMatematico = klsf.graphManager.modelSolution(0.5);
-        System.out.println("Componenti modello esatto: " + componentiSoluzioneModelloMatematico);
+        //System.out.println("MODELLO MATEMATICO");
+        //double components = klsf.graphManager.modelSolution(0.5);
+        //System.out.println("Componenti modello esatto: " + componentiSoluzioneModelloMatematico);
     }
 }

@@ -228,6 +228,7 @@ public class Graph {
     public void sortIntAsc(ArrayList<Integer> arr){
         Collections.sort(arr, new IntComparatorAsc());
     }
+    
 
     public class IntComparatorAsc implements Comparator<Integer> {
 
@@ -240,7 +241,7 @@ public class Graph {
             }
         }
     }
-
+    
     public int getId() {
         return id;
     }

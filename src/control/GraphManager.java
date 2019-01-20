@@ -5,6 +5,7 @@
  */
 package control;
 
+import comparator.AscendingOrder;
 import entity.Arch;
 import entity.Color;
 import entity.Graph;
@@ -87,21 +88,34 @@ public class GraphManager {
 
                 //Sort array of the label
                 //this.graph.sortAsc(archColors);
-                Collections.sort(archColors);
-
+                
+                //Collections.sort(archColors);
+                System.out.println("\nLabel colors Ascending Sorted\n"); 
+                AscendingOrder ord = new AscendingOrder(); 
+                Collections.sort(archColors, ord); 
+                System.out.println(archColors);
+                
+                
+                
                 Label label = null;
 
                 //Make sorted label
+                //ci vuole un metodo per ordinare i colori
                 String labelStr = "";
                 for (Color color : archColors) {
                     labelStr += "-" + color.getColor();
                 }
+                //remove first character -
                 labelStr = labelStr.substring(1);
-
+                
+                //Collections.sort(archColors);
+                //System.out.println(archColors);
+                
                 //Insert and count labels
                 if (this.graph.getLabels().containsKey(labelStr)) {
                     label = this.graph.getLabels().get(labelStr);
                     label.increaseArchs();
+                    System.out.println(label.getArchs());
                 } else {
                     label = new Label(archColors);
                     label.increaseArchs();
@@ -251,64 +265,119 @@ public class GraphManager {
      * @param percentage 
      */
     public void greedy(double percentage) {
-        
         //Set color limit based on the percentage input parameter
         int colorLimit = (int) (this.graph.getColorList().size() * percentage);
+        this.greedy(colorLimit);
+    }
+    
+    /**
+     * 
+     * @param colorLimit 
+     */
+    public void greedy(int colorLimit) {
+        
         
         //Sort color list by the color most present
         //this.getGraph().sort();
         //Insert color clone or add sort method in color for id asc
+        Collections.sort(this.graph.getLabelList());
+        System.out.println("labels sorted");
+        for (Label l : this.graph.getLabelList()) {
+            System.out.println(l.getColors());
+        }
+                
+        Collections.reverse(this.graph.getLabelList());
+        System.out.println("labels sorted reverse");
+        for (Label l : this.graph.getLabelList()) {
+            System.out.println(l.getColors());
+            System.out.println(l.getArchs());
+        }
+              
         Collections.sort(this.graph.getColorList());
         Collections.reverse(this.graph.getColorList());
+        System.out.println("colors sorted reverse");
+        for (Color c : this.graph.getColorList()) {
+            System.out.println(c.getColor());
+        }
         //this.getGraph().randomize();
         
         this.graph.resetNodesCheck();
         this.graph.resetColorCheck();
         this.graph.resetSolutionCheck();
-
-        //Set colors founds
-        int colors = 0;
-        //String label = "";
         
         ArrayList<Integer> colorSolution = new ArrayList<Integer>();
-
-        
         ArrayList<Graph> subGraphs = null;
         
-        //Set initial number on components based on number of nodes
-        //because all nodes in solution are disconnected
-        int components = this.graph.getNodeList().size();
+        //Set colors founds
+        int colors = 0;
+        int rate = 3;
+        for (int j = 0; j < rate ; j++) {
+            //Select the color of the most frequent label
+            ArrayList<Color> topLabelColors=this.graph.getLabelList().get(j).getColors();
+            for(Color color : topLabelColors){
+                if (!color.isSolution()){
+                    color.setChecked(true);
+                    color.setSolution(true);
+                    colorSolution.add(color.getColor());
+                    colors++;
+                }
+            }  
+        }
+        
+        
+        this.graph.resetArchsCheck();
+        //After selection of a color, read all archs in the root graph and set 
+        //true if the label contains the selected colors
+        for (int i = 0; i < this.graph.getArchList().size(); i++) {
 
+            //Get Arch in position i
+            Arch selectedArch = this.graph.getArchList().get(i);
+            ArrayList<Color> colorList = selectedArch.getLabel().getColors();
+
+            //Check the label
+            if (this.graph.allColorChecked(colorList)) {
+                selectedArch.setChecked(true);
+            }
+        }
+        
+        //Verify number of components using actual Solution due to checked colors
+        int components = this.getSubGraphs(this.graph).size();
+        
+        System.out.println("components after label colors selection:" + components);
+        
+        
+        
+        
         //Read all color from ordered color list
-        for (Color color : this.graph.getColorList()) {
+        while (colors < colorLimit & components > 1) {
             //Check if we have reached color limit or only one component
-            if (colors < colorLimit & components > 1) {
                 //Init actual best color that reduce components number
                 Color bestColor = null;
                 
-                //Check if actual number of colors cover at least one label size
-                //for selection
-                if (colors >= this.graph.getMinLabelLength() - 1) {
                     //Read new color to test solution with actual colors
-                    for (Color color2 : this.graph.getColorList()) {
+                    for (Color color : this.graph.getColorList()) {
                         //If i haven't selected it
-                        if (!color2.isSolution()) {
+                        if (!color.isSolution()) {
+                            if(bestColor==null)
+                                bestColor=color;
+                            
                             this.graph.resetArchsCheck();
                             //Insert is in actual solution
-                            color2.setChecked(true);
+                            color.setChecked(true);
 
                             //After selection of a color, read all archs in the root graph and set 
                             //true if the label contains the selected colors
                             for (int i = 0; i < this.graph.getArchList().size(); i++) {
-
+                                  
                                 //Get Arch in position i
                                 Arch selectedArch = this.graph.getArchList().get(i);
+                                
                                 ArrayList<Color> colorList = selectedArch.getLabel().getColors();
-
                                 //Check the label
                                 if (this.graph.allColorChecked(colorList)) {
                                     selectedArch.setChecked(true);
                                 }
+                                
                             }
 
                             this.graph.resetNodesCheck();
@@ -317,24 +386,14 @@ public class GraphManager {
 
                             if (subGraphs.size() < components) {
                                 components = subGraphs.size();
-                                bestColor = color2;
+                                bestColor = color;
                             }
+                            //else bestColor = null;
                             //Reset color to test previous Solution with other color
-                            color2.setChecked(false);
+                            color.setChecked(false);
                         }
                     }
-                    //If I have never found new color to decrease components
-                    //I can add the most present color not checked
-                    if (bestColor == null) {
-                        bestColor = color; // Is the last, we need the first
-                        //we need a for that read the ordered list and get the first unchecked color
-                    }
-
-                //If I haven't reached minimum number of colors for label
-                //I add most present color not checked
-                } else {
-                    bestColor = color;
-                }
+                    
                 //Sign choosen color and add it in Solution
                 bestColor.setChecked(true);
                 bestColor.setSolution(true);
@@ -342,19 +401,17 @@ public class GraphManager {
                 colorSolution.add(bestColor.getColor());
                 colors++;
 
-            } else {
-
-                System.out.print("colors: " + colors + " ");
-                System.out.print("subgraphs: " + components);
-                //System.out.println(" label: [" + label + " ] ");
-                //Collections.sort(colorSolution);
-                System.out.println("\n label colori non ordinati: " + colorSolution.toString());
-                this.graph.sortIntAsc(colorSolution);
-                System.out.println(" label colori ordinati: " + colorSolution.toString());
-                break;
             }
-
-        }
+            
+            System.out.print("colors: " + colors + " ");
+            System.out.print(colorSolution + " ");
+            System.out.print("subgraphs: " + components);
+            //System.out.println(" label: [" + label + " ] ");
+            //Collections.sort(colorSolution);
+            System.out.println("\n label colori non ordinati: " + colorSolution.toString());
+            this.graph.sortIntAsc(colorSolution);
+            System.out.println(" label colori ordinati: " + colorSolution.toString());
+               
 
     }
 
@@ -477,39 +534,34 @@ public class GraphManager {
 
     }
     
-    public void SAA(int temperature, double coolingRate) {
-        this.SAA(1.0, 1.0, temperature, coolingRate);
-    }
-
-    public void SAA(int swapColorRatio, int temperature, double coolingRate) {
-        this.SAA(1.0, swapColorRatio, temperature, coolingRate);
-    }
-
-    public void SAA(double keepingRatio, double swapColorRatio, double temperature, double coolingRate) {
-
-        ArrayList<Color> colorToKeep = new ArrayList<Color>();
-        
-        if (keepingRatio < 1.0) {
-            int positionsToKeep = (int) (chosenColorList.size() * keepingRatio);
-            
-            for (int i = 0; i < positionsToKeep; i++) {
-                colorToKeep.add(chosenColorList.get(0));
-                chosenColorList.remove(0);
-            }
-        }
-        
-        
-        ArrayList<Color> bestSolution = new ArrayList<Color>();
-        bestSolution = (ArrayList<Color>) chosenColorList.clone();
+    /**
+     * @param keepingRatio - number of position 
+     * @param swapColorRatio - number of colors to swap
+     * @param temperature
+     * @param coolingRate 
+     */
+    public void SAA(double keepingRatio, int swapColor, double temperature, double coolingRate) {
 
         int bestComponents = countComponents(graph);
         System.out.println("start components: " + bestComponents);
-
+        
+        ArrayList<Color> colorToKeep = new ArrayList<Color>();
+        ArrayList<Color> colorToSwap = new ArrayList<Color>();
+        
+        ArrayList<Color> startSolution = (ArrayList<Color>) chosenColorList.clone();
+        ArrayList<Color> excludedColors = (ArrayList<Color>) excludedColorList.clone();
+        
+        ArrayList<Color> bestSolution = new ArrayList<Color>();
+        while (temperature > 1) {
+        if (keepingRatio < 1.0) {
+            int positionsToKeep = (int) (startSolution.size() * keepingRatio);
+            Collections.shuffle(startSolution);
+            colorToKeep =  new ArrayList<Color>(startSolution.subList(0, positionsToKeep+1));
+            colorToSwap = new ArrayList<Color>(startSolution.subList(colorToKeep.size(), startSolution.size()));
+        }
         
 
-        int swapColor = (int) (colorToKeep.size() * swapColorRatio);
-
-        while (temperature > 1) {
+        //while (temperature > 1) {
 
             int currentEnergy = countComponents(graph);
 
@@ -522,24 +574,28 @@ public class GraphManager {
             //Random randomGenerator = new Random();
             //int index1 = randomGenerator.nextInt(chosenColorList.size());
             for (int i = 0; i < swapColor; i++) {
-                chosenColorListIndex.add(i, (int) (chosenColorList.size() * Math.random()));
-                excludedColorListIndex.add(i, (int) (excludedColorList.size() * Math.random()));
+                chosenColorListIndex.add(i, (int) (colorToSwap.size() * Math.random()));
+                excludedColorListIndex.add(i, (int) (excludedColors.size() * Math.random()));
 
-                chosenColorListRemoved.add(i, chosenColorList.get(chosenColorListIndex.get(i)));
-                excludedColorListRemoved.add(i, excludedColorList.get(excludedColorListIndex.get(i)));
+                chosenColorListRemoved.add(i, colorToSwap.get(chosenColorListIndex.get(i)));
+                excludedColorListRemoved.add(i, excludedColors.get(excludedColorListIndex.get(i)));
 
                 chosenColorListRemoved.get(i).setChecked(false);
                 chosenColorListRemoved.get(i).setSolution(false);
                 excludedColorListRemoved.get(i).setChecked(true);
                 excludedColorListRemoved.get(i).setSolution(true);
 
-                chosenColorList.remove((int) chosenColorListIndex.get(i));
-                excludedColorList.remove((int) excludedColorListIndex.get(i));
+                //colorToSwap.remove((int) chosenColorListIndex.get(i));
+                //excludedColors.remove((int) excludedColorListIndex.get(i));
             }
 
             for (int i = swapColor; i > 0; i--) {
-                chosenColorList.add((int) chosenColorListIndex.get(i - 1), excludedColorListRemoved.get(i - 1));
-                excludedColorList.add((int) excludedColorListIndex.get(i - 1), chosenColorListRemoved.get(i - 1));
+                
+                colorToSwap.set((int) chosenColorListIndex.get(i-1), excludedColorListRemoved.get(i-1));
+                excludedColors.set((int) excludedColorListIndex.get(i-1), chosenColorListRemoved.get(i-1));
+                
+                //colorToSwap.add((int) chosenColorListIndex.get(i - 1), excludedColorListRemoved.get(i - 1));
+                //excludedColors.add((int) excludedColorListIndex.get(i - 1), chosenColorListRemoved.get(i - 1));
             }
 
             int neighbourEnergy = countComponents(graph);
@@ -560,22 +616,28 @@ public class GraphManager {
                     chosenColorListRemoved.get(i-1).setSolution(true);
                     excludedColorListRemoved.get(i-1).setChecked(false);
                     excludedColorListRemoved.get(i-1).setSolution(false);
-                    chosenColorList.add((int) chosenColorListIndex.get(i - 1), chosenColorListRemoved.get(i - 1));
-                    excludedColorList.add((int) excludedColorListIndex.get(i - 1), excludedColorListRemoved.get(i - 1));
+                    colorToSwap.set((int) chosenColorListIndex.get(i-1), excludedColorListRemoved.get(i-1));
+                    excludedColors.set((int) excludedColorListIndex.get(i-1), chosenColorListRemoved.get(i-1));
+                    //colorToSwap.add((int) chosenColorListIndex.get(i - 1), chosenColorListRemoved.get(i - 1));
+                    //excludedColors.add((int) excludedColorListIndex.get(i - 1), excludedColorListRemoved.get(i - 1));
                 }
-            }
-
-            if (neighbourEnergy < bestComponents) {
-                bestSolution = (ArrayList<Color>) chosenColorList.clone();
+            }else{
+                bestSolution = null;
+                bestSolution = new ArrayList<Color>();
+                for(Color c : colorToKeep)
+                    bestSolution.add(c);
+                
+                for(Color c : colorToSwap)
+                    bestSolution.add(c);
                 bestComponents = currentEnergy;
+                //System.out.println(bestSolution.size());
             }
 
             temperature *= 1 - coolingRate;
         }
 
         System.out.println("Final solution components: " + bestComponents);
-        colorToKeep.addAll(bestSolution);
-        System.out.println(" Lista di colori finale: " + colorToKeep);
+        System.out.println(" Lista di colori finale: " + bestSolution);
     }
     
     public double modelSolution(double percentage) {

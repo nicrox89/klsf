@@ -71,11 +71,17 @@ public class Color implements Comparable<Color> {
         return Integer.toString(color);
     }
     
+    /*
+    @Override
+    public int compareTo(Color otherColor) {
+        return Integer.compare(color, otherColor.getColor());
+    }
+    */
+    
     @Override
     public int compareTo(Color otherColor) {
         return Integer.compare(archs, otherColor.getArchs());
     }
-    
     
 
 }
